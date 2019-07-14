@@ -1,4 +1,5 @@
 import tensorflow as tf
+from keras.models import Sequential
 
 
 class ModelBase:
@@ -6,7 +7,7 @@ class ModelBase:
         self.name = 'ModelBase'
 
     def get_models(self):
-        raise NotImplementedError
+        pass
 
     def train(self):
         raise NotImplementedError
@@ -18,7 +19,11 @@ class Discriminator(ModelBase):
         self.name = "discriminator"
 
     def get_models(self):
-        raise NotImplementedError
+        model = Sequential()
+        model.add(Dense(num_pixels, input_dim=num_pixels, kernel_initializer='normal', activation='relu'))
+        model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
+        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        return model
 
     def train(self):
         raise NotImplementedError
