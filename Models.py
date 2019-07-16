@@ -1,10 +1,12 @@
 import tensorflow as tf
-from keras.models import Sequential
+from keras.models import Sequential, Model, clone_model
+from keras.layers import Input, Dense, concatenate
 
 
 class ModelBase:
-    def __init__(self):
+    def __init__(self, Input_dims):
         self.name = 'ModelBase'
+        self.Input_dims = Input_dims
 
     def get_models(self):
         pass
@@ -22,7 +24,7 @@ class Discriminator(ModelBase):
 
     def get_models(self):
         inpt1 = Input(shape=(self.num_pixels,))
-        dense1 = Dense(self.num_pixels,kernel_initializer='normal',activation='relu')(inpt1)
+        dense1 = Dense(self.num_pixels, kernel_initializer='normal',activation='relu')(inpt1)
 
         inpt2 = Input(shape=(self.num_pixels,))
         dense2 = Dense(self.num_pixels,kernel_initializer='normal',activation='relu')(inpt2)
@@ -41,11 +43,12 @@ class Generator(ModelBase):
     def __init__(self):
         super().__init__()
         self.name = "generator"
+        self.hidden_size = [256, 256]
 
-    def get_models(self):
-        inpt1 = Input(shape=input_dimension)
+    def get_models(self, discriminator):
+        inpt1 = Input(shape=self.input_dimension)
         l = inpt1
-        for hid in hidden_size:
+        for hid in self.hidden_size:
             l = Dense(units=hid, kernel_initializer='normal',activation='relu')(l)
         model_d = clone_model(model=discriminator)
         for layer in model_d.layers:
