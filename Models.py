@@ -3,6 +3,7 @@ from keras.layers import Input, Dense, concatenate
 import numpy as np
 from keras.utils import np_utils
 from keras.datasets import mnist
+from tqdm import tqdm
 
 
 class ModelBase:
@@ -94,7 +95,12 @@ class GAN(ModelBase):
         model_gan = self.model
 
         for e in range(100):
-            print("Epoch: {}".format(e))
+            print("\n\n"
+                  "#################################################\n"
+                  "                                                 \n"
+                  "                  Epoch: {}                      \n" 
+                  "                                                 \n"
+                  "#################################################\n\n".format(e))
             Noise_x = np.random.normal(loc=0, scale=1, size=(X_train.shape[0], self.input_dims['G']))
             fake_image = model_g.predict(Noise_x)
             X_train_sync = np.concatenate([fake_image, X_train], axis=0)
@@ -109,19 +115,25 @@ class GAN(ModelBase):
 
             y_train_sync = y_train_sync[idx, :]
 
-            for _ in range(10):
-                for i in range(0, X_train_sync.shape[0], 64):
+            for _ in tqdm(range(10), ascii=True, desc="Model_D"):
+                pbar = tqdm(range(0, X_train_sync.shape[0], 64), ascii=True)
+                for i in pbar:
                     loss, acc = model_d.train_on_batch(x=[X_train_sync[i:i + 64, :], X_train_ori[i:i + 64, :]],
                                                        y=y_train_sync[i:i + 64])
-                    print(acc, end=", ")
-            print()
+                    pbar.set_description("  Batch")
+                    pbar.set_postfix({"trainloss": round(loss, 2), "acc": round(acc, 2)})
+                    # print(acc, end=", ")
+            # print()
             model_gan.get_layer(name='D_copy').set_weights(model_d.get_weights())
 
-            for i in np.random.choice(range(0, Noise_x.shape[0], 64), replace=False, size=30):
+            pbar = tqdm(np.random.choice(range(0, Noise_x.shape[0], 64), replace=False, size=30),
+                        ascii=True, desc="Model_G")
+            for i in pbar:
                 loss, acc = model_gan.train_on_batch(x=[Noise_x[i:i + 64, :], X_train[i:i + 64, :]],
                                                      y=np.array([[0, 1]] * Noise_x[i:i + 64, :].shape[0]))
-                print(acc, end=", ")
-            print()
+                pbar.set_postfix({"trainloss": round(loss, 2), "acc": round(acc, 2)})
+                # print(acc, end=", ")
+            # print()
 
 
 if __name__ == '__main__':
