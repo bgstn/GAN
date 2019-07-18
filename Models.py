@@ -115,15 +115,16 @@ class GAN(ModelBase):
 
             y_train_sync = y_train_sync[idx, :]
 
-            for _ in tqdm(range(10), ascii=True, desc="Model_D"):
+            bar = tqdm(range(10), ascii=True, desc="Model_D")
+            for _ in bar:
                 pbar = tqdm(range(0, X_train_sync.shape[0], 64), ascii=True)
                 for i in pbar:
                     loss, acc = model_d.train_on_batch(x=[X_train_sync[i:i + 64, :], X_train_ori[i:i + 64, :]],
                                                        y=y_train_sync[i:i + 64])
                     pbar.set_description("  Batch")
                     pbar.set_postfix({"trainloss": round(loss, 2), "acc": round(acc, 2)})
-                    # print(acc, end=", ")
-            # print()
+                bar.set_postfix({'train_loss': round(loss, 2), "acc": round(acc, 2)})
+
             model_gan.get_layer(name='D_copy').set_weights(model_d.get_weights())
 
             pbar = tqdm(np.random.choice(range(0, Noise_x.shape[0], 64), replace=False, size=30),
@@ -142,10 +143,10 @@ if __name__ == '__main__':
     X_train = X_train.reshape(X_train.shape[0], -1) / 255
     X_test = X_test.reshape(X_test.shape[0], -1) / 255
 
-    X_train = X_train[y_train == 0]
-    X_test = X_test[y_test == 0]
-    y_train = y_train[y_train == 0]
-    y_test = y_test[y_test == 0]
+    # X_train = X_train[y_train == 0]
+    # X_test = X_test[y_test == 0]
+    # y_train = y_train[y_train == 0]
+    # y_test = y_test[y_test == 0]
 
     # params
     num_pixels = X_train.shape[1]
